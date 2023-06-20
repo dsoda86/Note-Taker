@@ -2,6 +2,7 @@
 const express = require("express");
 const path = require("path");
 const  fs = require("fs");
+const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.port || 3001;
 const app = express();
@@ -26,7 +27,36 @@ app.get("/notes", (req, res) =>
 // GET route to read the db.json file and return all saved notes as JSON
 app.get("/api/notes", (req, res) => {
     console.info(`${req.method} request received for notes`);
-    readFromFile("/db/db.json").then((data) => res.json(JSON.parse(data)));
+    res.sendFile(path.join(__dirname, "/db/db.json"));
 });
 
+app.post("/api/notes", (req, res) => {
+    console.info(`${req.method} request received to add a note`);
 
+    try {
+        // Read the existing notes from the db.json file
+        const notes = JSON.parse(fs.readFileSync(path.join(__dirname, "./db/db.json"), "utf8"));
+
+        // Create a new note object with a unique ID using uuidv4()
+        const newNote = {
+            id: uuidv4(),
+            text: req.body,
+        };
+
+        // Add the new note to the existing notes array
+        notes.push(newNote);
+
+        // Write the updated notes array back to the db.json file
+        fs.writeFileSync(path.join(__dirname, "./db/db.json"), JSON.stringify(notes));
+        
+        // Respond with the new note as JSON
+        res.json(newNote);
+    } catch (error) {
+        console.error("Error occurred while saving the note:", error);
+        res.status(500).json({ error: "Failed to save the note." });
+      }
+});
+
+app.listen(PORT, () =>
+  console.log(`App listening at http://localhost:${PORT} 🚀`)
+);
