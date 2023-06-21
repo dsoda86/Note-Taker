@@ -14,7 +14,10 @@ app.use(express.urlencoded({extended: true}));
 // Middleware to serve up static assets from the public folder
 app.use(express.static("public"));
 
-
+// GET route for the homepage
+app.get("/", (req, res) =>
+    res.sendFile(path.join(__dirname, "./public/index.html"))
+);
 // GET route for notes page
 app.get("/notes", (req, res) =>
     res.sendFile(path.join(__dirname, "./public/notes.html"))
